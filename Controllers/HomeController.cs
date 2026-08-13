@@ -1,13 +1,23 @@
 using System.Diagnostics;
 using ASP_P42.Models;
+using ASP_P42.Services.Hash;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASP_P42.Controllers
 {
-    public class HomeController : Controller
+    // primary constructor - прямо при оголошенні класу
+    public class HomeController(IHashService hashService) : Controller
     {
+        // Інжекція через конструктор у формі Primary
+        private readonly IHashService _hashService = hashService;
+
         public IActionResult IoC()
         {
+            String digest = _hashService.Digest("123");
+            // передача даних до представлення
+            // варіанти спільних ресурсів
+            ViewBag.Hash = _hashService.GetHashCode();
+            ViewData["digest"] = digest;
             return View();
         }
 
