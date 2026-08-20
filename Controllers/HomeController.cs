@@ -2,19 +2,27 @@ using System.Diagnostics;
 using ASP_P42.Models;
 using ASP_P42.Models.Home.Models;
 using ASP_P42.Services.Hash;
+using ASP_P42.Services.Kdf;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASP_P42.Controllers
 {
     // primary constructor - прямо при оголошенні класу
-    public class HomeController(IHashService hashService) : Controller
+    public class HomeController(
+        IHashService hashService,
+        IKdfService kdfService
+        ) : Controller
     {
         // Інжекція через конструктор у формі Primary
         private readonly IHashService _hashService = hashService;
+        private readonly IKdfService _kdfService = kdfService;
 
         public IActionResult IoC()
         {
-            String digest = _hashService.Digest("123");
+            String digest = _kdfService.Dk(
+                "96DCBBBA", 
+                "96DCBBBA-9AEE-44A2-8835-72DFE4E1A710"); // _hashService.Digest("123");
+            
             // передача даних до представлення
             // варіанти спільних ресурсів
             ViewBag.Hash = _hashService.GetHashCode();

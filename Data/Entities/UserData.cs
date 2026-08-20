@@ -9,6 +9,10 @@
         public DateTime Birthdate { get; set; }
         public DateTime RegisteredAt { get; set; }
         public DateTime? DeletedAt { get; set; }
+
+        // інверсні навігаційні властивості -
+        // "зворотній бік" навігаційних властивостей
+        public ICollection<UserAccess> Accesses { get; set; } = [];
     }
 }
 /*
