@@ -1,4 +1,5 @@
 using ASP_P42.Data;
+using ASP_P42.Middleware.AuthSession;
 using ASP_P42.Services.Hash;
 using ASP_P42.Services.Kdf;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,17 @@ builder.Services.AddDbContext<DataContext>(options =>
     )
 );
 
+// Налаштування сесій
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(1);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -26,13 +38,15 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
 app.UseHttpsRedirection();
 app.UseRouting();
-
 app.UseAuthorization();
-
 app.MapStaticAssets();
+
+app.UseSession();   // включаємо сесії
+
+// додаємо custom middleware
+app.UseAuthSession();
 
 app.MapControllerRoute(
     name: "default",

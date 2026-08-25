@@ -55,18 +55,22 @@ document.addEventListener('submit', e => {
         // Authorization: Basic <credentials>
         fetch("/User/BasicAuth", {
             headers: {
-                "Authorization": "Basic !" + credentials,
+                "Authorization": "Basic " + credentials,
             }
         }).then(r => {
             if (r.ok) {
-                return r.json();
+                // return r.json();
+                // при роботі з сесіями при позитивній відповіді
+                // слід перезавантажити сторінку. Це має активувати
+                // роботу Cookie
+                window.location.reload();
             }
             else {
                 return r.text();
             }
         }).then(console.log);
 
-        console.log(credentials);
+        // console.log(credentials);
     }
 });
 /*
