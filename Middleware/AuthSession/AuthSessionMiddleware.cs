@@ -17,6 +17,21 @@ namespace ASP_P42.Middleware.AuthSession
             DataContext dataContext    // порядок ролі не грає, тільки тип
         )
         {
+            String authKey = "userAccessId";
+            // Спочатку перевіряємо чи не запитано вихід (з авториз. режиму)
+            // про це свідчить наявність query-параметра "logout"
+            if (context.Request.Query.ContainsKey("logout"))
+            {
+                // видаляємо з сесії збережені дані
+                context.Session.Remove(authKey);
+                // переадресовуємо відповідь на ту ж адресу, з
+                // якої прийшов запит
+                // з метою "прибирання" наявного query-параметра
+                context.Response.Redirect(context.Request.Path);
+                // зупиняємо подальшу обробку даного запиту
+                return;
+            }
+
             // context, що передається параметром, це той самий 
             // HttpContext, що доступний з контролерів
             // Відповідно, до нього можна закласти дані, що можуть
@@ -24,7 +39,6 @@ namespace ASP_P42.Middleware.AuthSession
             context.Items.Add("itemKey", "Item Value");
 
             // перевіряємо, чи є у сесії елемент з ключем "userAccessId"
-            String authKey = "userAccessId";
             if (context.Session.Keys.Contains(authKey))
             {
                 String userAccessId = context.Session.GetString(authKey)!;
