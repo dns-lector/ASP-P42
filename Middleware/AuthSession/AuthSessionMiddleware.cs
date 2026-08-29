@@ -1,6 +1,7 @@
 ﻿using ASP_P42.Data;
 using ASP_P42.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace ASP_P42.Middleware.AuthSession
 {
@@ -52,7 +53,22 @@ namespace ASP_P42.Middleware.AuthSession
                 if (userAccess != null)
                 {
                     // знайдено підтвердження допуску, передаємо до контексту
-                    context.Items.Add(authKey, userAccess);
+                    // context.Items.Add(authKey, userAccess);
+                    // Даний підхід не є рекомендованим, оскільки 
+                    // прив'язується до типів даних сутності.
+                    // Рекомендовано використати уніфікований інтерфейс
+                    // за допомогою Claims - набору атрибутів типового призначення
+                    context.User = new ClaimsPrincipal(
+                        new ClaimsIdentity(
+                            [
+                                new Claim(ClaimTypes.Name, userAccess.UserData.FullName),
+                                new(ClaimTypes.Email, userAccess.UserData.Email),
+                                new(ClaimTypes.NameIdentifier, userAccess.Login),
+                                new(ClaimTypes.Sid, userAccess.Id.ToString()),
+                            ],
+                            nameof(AuthSessionMiddleware)
+                        )
+                    );
                 }
             }
 

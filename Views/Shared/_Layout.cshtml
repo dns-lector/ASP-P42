@@ -1,13 +1,22 @@
-﻿@using ASP_P42.Data.Entities
+﻿@using System.Security.Claims
 @{
     // перевіряємо авторизацію - вилучаємо з контексту дані за 
     // ключем "userAccessId"
-    UserAccess? userAccess = null;
-    String authKey = "userAccessId";
-    if (Context.Items.Keys.Contains(authKey))
-    {
-        userAccess = (UserAccess)Context.Items[authKey]!;
-    }
+    // UserAccess? userAccess = null;
+    // String authKey = "userAccessId";
+    // if (Context.Items.Keys.Contains(authKey))
+    // {
+    //     userAccess = (UserAccess)Context.Items[authKey]!;
+    // }
+
+    // нова схема роботи - вилучення Claims
+    bool isAuthenticated = Context.User.Identity?.IsAuthenticated ?? false;
+    String? userName = isAuthenticated
+    ? Context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value
+    : null;
+    String? userEmail = isAuthenticated
+    ? Context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value
+    : null;
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -61,7 +70,7 @@
 
                     </ul>
                     
-                    @if(userAccess == null)
+                    @if(!isAuthenticated)
                     {
                         <!-- Button trigger modal -->
                         <button type="button" class="btn btn-outline-secondary"
@@ -80,6 +89,7 @@
                             іменем користувача та його E-mail
                         *@
                         <a class="btn btn-outline-danger"
+                            title="@userName"
                             href="?logout">Вихід</a>
                     }    
 

@@ -1,8 +1,11 @@
 ﻿using ASP_P42.Data;
 using ASP_P42.Data.Entities;
 using ASP_P42.Services.Kdf;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
+using System.Text.Json;
 
 namespace ASP_P42.Controllers
 {
@@ -17,17 +20,104 @@ namespace ASP_P42.Controllers
         // Автентифікація - перевірка логіна та паролю
         public IActionResult BasicAuth()
         {
+            UserAccess? userAccess;
+            try
+            {
+                userAccess = AuthenticateUser();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            if (userAccess == null)
+            {
+                return Unauthorized(
+                    "Credentials rejected: check login and password");
+            }
+            #region comment
+            // точка позитивного рішення про автентифікацію
+            // тут слід переходити до авторизації. Розглянемо
+            // два способи: автоматичний через сесії та
+            // окремий через токени.
+
+            // Серверна сесія (сеанс) - спосіб збереження даних 
+            // про запити з боку сервера із встановленням для 
+            // запиту Cookie, що грає роль токена доступу до
+            // збережених даних. Від клієнта не вимагається 
+            // особливих дій, лише забезпечити стандартну роботу
+            // cookie, якщо застосунок поза браузером.
+            // Дані зберігаємо у сесію (налаштування - Program.cs)
+            #endregion
+            HttpContext.Session.SetString(
+                "userAccessId",
+                userAccess.Id.ToString()
+            );
+            // відповідь може бути порожньою
+            return Ok();
+            
+        }
+
+        public IActionResult BasicAuthJwt()
+        {
+            UserAccess? userAccess;
+            try
+            {
+                userAccess = AuthenticateUser();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            if (userAccess == null)
+            {
+                return Unauthorized(
+                    "Credentials rejected: check login and password");
+            }
+            // Формуємо токен
+            var header = new
+            {
+                alg = "HS256",
+                typ = "JWT"
+            };
+            long time = (DateTime.Now.Ticks - DateTime.UnixEpoch.Ticks) / 100000;
+            var payload = new
+            {
+                sub = userAccess.Login,
+                iat = time,
+                exp = time + 1000000,
+                name = userAccess.UserData.FullName,
+                email = userAccess.UserData.Email
+            };
+            String body = Base64UrlTextEncoder.Encode(
+                Encoding.UTF8.GetBytes(
+                    JsonSerializer.Serialize(header)))
+                + "." +
+                Base64UrlTextEncoder.Encode(
+                Encoding.UTF8.GetBytes(
+                    JsonSerializer.Serialize(payload)));
+
+            String signature = Base64UrlTextEncoder.Encode(
+                System.Security.Cryptography.HMACSHA256.HashData(
+                    Encoding.UTF8.GetBytes("secret"),
+                    Encoding.UTF8.GetBytes(body)
+            ));
+
+            return Ok(body + "." +  signature);
+        }
+
+        private UserAccess? AuthenticateUser()
+        {
             // Зворотні дії до стандарту RFC 7617 'Basic' HTTP Authentication Scheme
             // Перевірити, чи є заголовок автентифікації
             String authHeader = HttpContext.Request.Headers.Authorization.ToString();
             if (authHeader == String.Empty)
             {
-                return Unauthorized("Missing Authorization header");
+                throw new Exception("Missing Authorization header");
             }
             String scheme = "Basic ";
             if (!authHeader.StartsWith(scheme))
             {
-                return Unauthorized("Authorization scheme must be 'Basic'");
+                throw new Exception("Authorization scheme must be 'Basic'");
             }
             String credentials = authHeader[scheme.Length..];
             byte[] rawData;
@@ -37,7 +127,7 @@ namespace ASP_P42.Controllers
             }
             catch
             {
-                return Unauthorized(
+                throw new Exception(
                     "Authorization credentials must be valid Base64::section 4");
             }
             String userPass;
@@ -47,13 +137,13 @@ namespace ASP_P42.Controllers
             }
             catch
             {
-                return Unauthorized(
+                throw new Exception(
                     "User-pass must be valid UTF8 string");
             }
             String[] parts = userPass.Split(':', 2);
             if (parts.Length != 2)
             {
-                return Unauthorized(
+                throw new Exception(
                     "User-pass must be concatenated by ':'");
             }
             String login = parts[0];
@@ -67,34 +157,22 @@ namespace ASP_P42.Controllers
             //    Результат обчислення має збігатись зі збереженим DK у БД
             if (_dataContext
                 .UserAccesses
+                .Include(ua => ua.UserData)
+                .Include(ua => ua.UserRole)
+                .AsNoTracking()
                 .FirstOrDefault(ua => ua.Login == login)
                 is UserAccess userAccess)
             {
                 String dk = _kdfService.Dk(password, userAccess.Salt);
                 if (dk == userAccess.Dk)
                 {
-                    // точка позитивного рішення про автентифікацію
-                    // тут слід переходити до авторизації. Розглянемо
-                    // два способи: автоматичний через сесії та
-                    // окремий через токени.
-
-                    // Серверна сесія (сеанс) - спосіб збереження даних 
-                    // про запити з боку сервера із встановленням для 
-                    // запиту Cookie, що грає роль токена доступу до
-                    // збережених даних. Від клієнта не вимагається 
-                    // особливих дій, лише забезпечити стандартну роботу
-                    // cookie, якщо застосунок поза браузером.
-                    // Дані зберігаємо у сесію (налаштування - Program.cs)
-                    HttpContext.Session.SetString(
-                        "userAccessId",
-                        userAccess.Id.ToString()
-                    );
-                    // відповідь може бути порожньою
-                    return Ok();
+                    return userAccess;
                 }
             }
-            return Unauthorized(
-                "Credentials rejected: check login and password");
+            return null;
         }
     }
 }
+/* Д.З. Використати Postman для випробування бекенду авторизації
+ * Додати скріншоти різних відповідей на різні запити (коректні та ні)
+ */
