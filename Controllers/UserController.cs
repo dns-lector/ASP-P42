@@ -1,5 +1,6 @@
 ﻿using ASP_P42.Data;
 using ASP_P42.Data.Entities;
+using ASP_P42.Models.User;
 using ASP_P42.Services.Kdf;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,13 @@ namespace ASP_P42.Controllers
     {
         private readonly DataContext _dataContext = dataContext;
         private readonly IKdfService _kdfService = kdfService;
+
+        // Реєстрація за даними, що надходять з фронтенда (JSON)
+        public IActionResult SignUp(UserSignupFormModel formModel)
+        {
+            return Ok();
+        }
+
 
         // Автентифікація - перевірка логіна та паролю
         public IActionResult BasicAuth()
@@ -173,6 +181,9 @@ namespace ASP_P42.Controllers
         }
     }
 }
-/* Д.З. Використати Postman для випробування бекенду авторизації
- * Додати скріншоти різних відповідей на різні запити (коректні та ні)
+/* Д.З. CORS: оголосити декілька політик з власними іменами
+ * - з повним дозволом
+ * - з винятковим дозволом для http://localhost:5173/
+ *     та заголовками Authorization, Content-Type
+ * Підключити одну політику за іменем
  */
