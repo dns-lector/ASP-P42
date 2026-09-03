@@ -19,9 +19,32 @@ namespace ASP_P42.Controllers
         private readonly IKdfService _kdfService = kdfService;
 
         // Реєстрація за даними, що надходять з фронтенда (JSON)
-        public IActionResult SignUp(UserSignupFormModel formModel)
+        public IActionResult SignUp([FromBody]UserSignupFormModel formModel)
         {
-            return Ok();
+            // Валідація моделі - перевірка даних на припустимість
+
+            Guid userId = Guid.NewGuid();
+            _dataContext.UsersData.Add(new()
+            {
+                Id = userId,
+                FullName = formModel.FullName,
+                Email = formModel.Email,
+                Phone = formModel.Phone,
+                RegisteredAt = DateTime.Now,
+                Birthdate = default,
+            });
+            String salt = Guid.NewGuid().ToString();
+            _dataContext.UserAccesses.Add(new()
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                RoleId = _dataContext.UserRoles.First(r => r.Name == "User").Id,
+                Login = formModel.Login,
+                Salt = salt,
+                Dk = _kdfService.Dk(formModel.Password, salt),
+            });
+            _dataContext.SaveChanges();
+            return Json(formModel);
         }
 
 
