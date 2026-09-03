@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace ASP_P42.Controllers
 {
@@ -22,6 +23,65 @@ namespace ASP_P42.Controllers
         public IActionResult SignUp([FromBody]UserSignupFormModel formModel)
         {
             // Валідація моделі - перевірка даних на припустимість
+            if(formModel == null)
+            {
+                return BadRequest("Data structure non-bindable to model");
+            }
+            // першими ідуть "дешеві" перевірки - з мінімальною працеємністю
+            if( ! formModel.IsAgree)
+            {
+                return BadRequest("You should confirm site policy (agreement)");
+            }
+            String requiredMessage = " could not be empty";
+            if (String.IsNullOrEmpty(formModel.Login))
+            {
+                return BadRequest(nameof(formModel.Login) + requiredMessage);
+            }
+            if (String.IsNullOrEmpty(formModel.FullName))
+            {
+                return BadRequest(nameof(formModel.FullName) + requiredMessage);
+            }
+            if (String.IsNullOrEmpty(formModel.Email))
+            {
+                return BadRequest(nameof(formModel.Email) + requiredMessage);
+            }
+            if (String.IsNullOrEmpty(formModel.Password))
+            {
+                return BadRequest(nameof(formModel.Password) + requiredMessage);
+            }
+            if(formModel.Password != formModel.Repeat)
+            {
+                return BadRequest("Password and Repeat mismatch");
+            }
+            // перевірки наступної складності - відповідність форматам
+            // а також попередня обробка
+            formModel.FullName = formModel.FullName.Trim();
+            if (formModel.FullName.Length < 2)
+            {
+                return BadRequest(nameof(formModel.FullName) + " too short (2 symbols at least)");
+            }
+            formModel.Login = formModel.Login.Trim();
+            if (formModel.Login.Length < 2)
+            {
+                return BadRequest(nameof(formModel.Login) + " too short (2 symbols at least)");
+            }
+            if(formModel.Login.Contains(':'))
+            {
+                return BadRequest(nameof(formModel.Login) + " could not contain colon (':')");
+            }
+            formModel.Email = formModel.Email.Trim();
+            if( ! Regex.IsMatch(
+                formModel.Email, 
+                @"^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$"
+            ))
+            {
+                return BadRequest(nameof(formModel.Email) + " has invalid format");
+            }
+            // найскладніші перевірки - з залученням БД
+            if(_dataContext.UserAccesses.Any(ua => ua.Login == formModel.Login))
+            {
+                return BadRequest(nameof(formModel.Login) + $" '{formModel.Login}' is already in use");
+            }
 
             Guid userId = Guid.NewGuid();
             _dataContext.UsersData.Add(new()
@@ -204,6 +264,12 @@ namespace ASP_P42.Controllers
         }
     }
 }
+/* Д.З. Валідація: додати до точки реєстрації користувача
+ * валідацію даних:
+ * Телефон - складається з 10 цифр, перша з яких 0 (0987654321)
+ * * Пароль - класичні вимоги
+ */
+
 /* Д.З. CORS: оголосити декілька політик з власними іменами
  * - з повним дозволом
  * - з винятковим дозволом для http://localhost:5173/

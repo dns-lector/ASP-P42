@@ -14,7 +14,7 @@ namespace ASP_P42.Models.User
         public String Email { get; set; } = null!;
         
         [JsonPropertyName("phone")]
-        public String Phone { get; set; } = null!;
+        public String? Phone { get; set; }
         
         [JsonPropertyName("password")]
         public String Password { get; set; } = null!;
