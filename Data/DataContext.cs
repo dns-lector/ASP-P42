@@ -8,6 +8,10 @@ namespace ASP_P42.Data
         public DbSet<Entities.UserRole> UserRoles { get; set; }
         public DbSet<Entities.UserAccess> UserAccesses { get; set; }
 
+        public DbSet<Entities.ProductGroup> ProductGroups { get; set; }
+        public DbSet<Entities.Product> Products { get; set; }
+        public DbSet<Entities.ProductVersion> ProductVersions { get; set; }
+
         // Конструювання контексту налаштовується з Program.cs
         // відповідно, на час проєктування делегується конструктор
         // з параметрами підключення.
@@ -20,6 +24,33 @@ namespace ASP_P42.Data
             // Налаштування, що виконуються під час першого завантаження
             // контексту даних, зокрема, зв'язки між таблицями, унікальність
             // тощо
+            modelBuilder.Entity<Entities.ProductGroup>()
+                .HasIndex(p => p.Slug)
+                .IsUnique();
+            
+            modelBuilder.Entity<Entities.Product>()
+                .HasIndex(p => p.Slug)
+                .IsUnique();
+            
+            modelBuilder.Entity<Entities.ProductVersion>()
+                .HasIndex(p => p.Slug)
+                .IsUnique();
+
+            modelBuilder.Entity<Entities.Product>()
+                .HasOne(p => p.Group)
+                .WithMany(g => g.Products)
+                .HasForeignKey(p => p.GroupId);
+
+            modelBuilder.Entity<Entities.ProductVersion>()
+                .HasOne(p => p.Product)
+                .WithMany(g => g.Versions);
+
+            modelBuilder.Entity<Entities.ProductGroup>()
+                .HasOne(p => p.ParentGroup)
+                .WithMany(g => g.Children)
+                .HasForeignKey(p => p.ParentId);
+
+
             modelBuilder.Entity<Entities.UserAccess>()
                 .HasIndex(ua => ua.Login)
                 .IsUnique();
@@ -111,14 +142,14 @@ Entities - відбивають структуру таблиць БД. Для �
 
 
 ProductGroup       Product            ProductVersion
-[Id]               [Id]               [Id]
-[name]             [GroupId]          [ProductId]
+[Id]   --\         [Id]     ---\      [Id]
+[name]    \---     [GroupId]    \---  [ProductId]
 [description]      [name]             [slug]
-[slug]             [description]
-[imageUrl]         [slug]
-                   [imageUrl]
-                   [Price]
-                   [Stock]
+[slug]             [description]      [Price]
+[imageUrl]         [slug]             [Stock]
+[IsHidden]         [imageUrl]         [imageUrl]
+[ParentId]         [IsHidden]         [IsHidden]
+                   
 
 Д.З. Створити сторінку з описом дій для долучення
 бази даних з Entity Framework до проєкту ASP
