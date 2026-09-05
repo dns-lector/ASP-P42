@@ -109,6 +109,17 @@ Entities - відбивають структуру таблиць БД. Для �
 [RegisteredAt]     [Dk]               [DeleteLevel]
 [DeletedAt]
 
+
+ProductGroup       Product            ProductVersion
+[Id]               [Id]               [Id]
+[name]             [GroupId]          [ProductId]
+[description]      [name]             [slug]
+[slug]             [description]
+[imageUrl]         [slug]
+                   [imageUrl]
+                   [Price]
+                   [Stock]
+
 Д.З. Створити сторінку з описом дій для долучення
 бази даних з Entity Framework до проєкту ASP
 * з означенням термінології БД
