@@ -37,7 +37,7 @@ document.addEventListener('submit', e => {
         else {
             err.innerText = "";
             err.style.visibility = "hidden";
-        } 
+        }
         // передаємо дані до бекенду з дотриманням стандарту
         // RFC 7617 'Basic' HTTP Authentication Scheme
         // constructs the user-pass by concatenating the user-id, a single
@@ -71,6 +71,19 @@ document.addEventListener('submit', e => {
         }).then(console.log);
 
         // console.log(credentials);
+    }
+    else if (form.id == 'admin-add-group') {
+        e.preventDefault();
+        const formData = new FormData(form);
+        fetch("/Admin/AddGroup", {
+            method: "POST",
+            body: formData
+        }).then(r => {
+            //if (r.ok)
+            {
+                r.text().then(alert);
+            }
+        });
     }
 });
 /*
