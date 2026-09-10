@@ -39,7 +39,8 @@ namespace ASP_P42.Controllers
                     IsHidden = formModel.IsHidden,
                     ImageUrl = "/storage/image/" + _storageService.Save(formModel.Image)
                 });
-                return Ok(  );
+                _dataContext.SaveChanges();
+                return Ok();
             }
             catch (Exception ex)
             {
