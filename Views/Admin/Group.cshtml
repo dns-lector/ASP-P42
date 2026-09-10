@@ -1,4 +1,5 @@
-﻿@{
+﻿@model ASP_P42.Models.Admin.AdminGroupViewModel
+@{
     ViewData["Title"] = "Admin Page";
 }
 
@@ -11,10 +12,11 @@
     <div class="input-group mb-3">
         <label class="input-group-text" for="group-parent">Батьківська група</label>
         <select class="form-select" id="group-parent" name="group-parent">
-            <option selected>Choose...</option>
-            <option value="1">One</option>
-            <option value="2">Two</option>
-            <option value="3">Three</option>
+            <option selected>Вищій рівень</option>
+            @foreach(var group in Model.Groups)
+            {
+                <option value="@group.Id" title="@group.Description">@group.Name</option>
+            }
         </select>
     </div>
 

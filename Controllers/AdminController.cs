@@ -21,7 +21,7 @@ namespace ASP_P42.Controllers
             {
                 Groups = _dataContext.ProductGroups.ToList(),
             };
-            return View();
+            return View(viewModel);
         }
 
         [HttpPost]
@@ -29,7 +29,17 @@ namespace ASP_P42.Controllers
         {
             try
             {
-                return Ok( _storageService.Save(formModel.Image) );
+                _dataContext.ProductGroups.Add(new()
+                {
+                    Id = Guid.NewGuid(),
+                    ParentId = formModel.ParentId,
+                    Name = formModel.Name,
+                    Description = formModel.Description,
+                    Slug = formModel.Slug,
+                    IsHidden = formModel.IsHidden,
+                    ImageUrl = "/storage/image/" + _storageService.Save(formModel.Image)
+                });
+                return Ok(  );
             }
             catch (Exception ex)
             {
