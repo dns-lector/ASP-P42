@@ -21,6 +21,9 @@ namespace ASP_P42.Data.Entities
 
         public int IsHidden { get; set; } = 0;
 
+        public int OrderInPrice { get; set; } = 100000;
+
+
         public Product Product { get; set; } = null!;
     }
 }
