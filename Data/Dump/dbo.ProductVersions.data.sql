@@ -1,0 +1,1 @@
+﻿INSERT INTO [dbo].[ProductVersions] ([Id], [ProductId], [Version], [Price], [Stock], [Slug], [ImageUrl], [IsHidden], [OrderInPrice]) VALUES (N'8403cb39-45ec-41e2-886a-06510a78b043', N'1b7fb496-8e4d-4d9b-8836-0b0ea785831a', NULL, CAST(100.00 AS Decimal(18, 2)), 10, N'Fortnite-Battle-Royale', N'b3e66d12-c639-491e-957a-05d6e1bcc37e.png', 0, 1)
