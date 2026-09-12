@@ -9,10 +9,20 @@ namespace ASP_P42.Controllers
     {
         private readonly IStorageService _storageService = storageService;
         private readonly DataContext _dataContext = dataContext;
+         
 
         public IActionResult Index()
         {
             return View();
+        }
+
+        public IActionResult Product()
+        {
+            AdminGroupViewModel viewModel = new()
+            {
+                Groups = _dataContext.ProductGroups.ToList(),
+            };
+            return View(viewModel);
         }
 
         public IActionResult Group()

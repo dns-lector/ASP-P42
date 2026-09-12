@@ -8,7 +8,9 @@
 
         public String Name { get; set; } = null!;
 
-        public String Description { get; set; } = null!;
+        public int Stock { get; set; } = 1;
+
+        public String? Description { get; set; } = null!;
 
         public String? Slug { get; set; } = null!;
 

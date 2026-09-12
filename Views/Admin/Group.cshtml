@@ -50,5 +50,12 @@
         <label for="group-hidden" class="form-control">Створити прихованою</label>
     </div>
 
+    <div class="input-group mb-3">
+        <span class="input-group-text" id="group-order-addon">Порядок</span>
+        <input type="number" class="form-control" value="@(Model.Groups.Count + 1)" step="1"
+               aria-label="Порядок (пріоритет) групи" aria-describedby="group-order-addon"
+               name="group-order" />
+    </div>
+
     <button class="btn btn-primary">Add</button>
 </form>
