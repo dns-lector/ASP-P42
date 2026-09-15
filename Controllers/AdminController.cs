@@ -1,4 +1,5 @@
 ﻿using ASP_P42.Data;
+using ASP_P42.Data.Entities;
 using ASP_P42.Models.Admin;
 using ASP_P42.Services.Storage;
 using Microsoft.AspNetCore.Mvc;
@@ -45,7 +46,16 @@ namespace ASP_P42.Controllers
                     .ProductGroups
                     .FirstOrDefault(g => g.Id == formModel.GroupId)
                 ?? throw new Exception($"Group not found with id='{formModel.GroupId}'");
-
+                
+                // додавання нового товару
+                // оскільки зображення (картинка) опціональна, перевіряємо без винятків
+                String? imageUrl = null;
+                if (formModel.Image != null)
+                {
+                    // але якщо дані передано, то перевіряємо повністю
+                    imageUrl = _storageService.Save(formModel.Image);
+                }
+                
                 if (formModel.ProductId != null)
                 {
                     // додавання нової версії, слід пересвідчитись у наявності товару
@@ -54,18 +64,21 @@ namespace ASP_P42.Controllers
                         .FirstOrDefault(p => p.Id == formModel.ProductId) 
                     ?? throw new Exception($"Product not found with id='{formModel.ProductId}'");
 
-
+                    _dataContext.ProductVersions.Add(new()
+                    {
+                        Id = _dataAccessor.GetDbIdentity(),
+                        ProductId = product.Id,
+                        ImageUrl = imageUrl,
+                        Price = (decimal)formModel.Price,
+                        Stock = formModel.Stock,
+                        OrderInPrice = formModel.Order,
+                        Slug = formModel.Slug,
+                        IsHidden = formModel.IsHidden,
+                        Version = formModel.Name
+                    });
                 }
                 else
-                {
-                    // додавання нового товару
-                    // оскільки зображення (картинка) опціональна, перевіряємо без винятків
-                    String? imageUrl = null;
-                    if(formModel.Image != null)
-                    {
-                        // але якщо дані передано, то перевіряємо повністю
-                        imageUrl = _storageService.Save(formModel.Image);
-                    }
+                {                    
                     // Розбираємо дані на Товар і Версію
                     Guid productId = Guid.NewGuid();
                     _dataContext.Products.Add(new()
@@ -90,8 +103,10 @@ namespace ASP_P42.Controllers
                         Slug = formModel.Slug,
                         IsHidden = formModel.IsHidden,                        
                     });
-                    _dataContext.SaveChanges();
                 }
+                
+                _dataContext.SaveChanges();
+                
                 return Ok();
             }
             catch (Exception ex)
@@ -111,7 +126,7 @@ namespace ASP_P42.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddGroup(AdminAddGroupFormModel formModel)
+        public async Task<IActionResult> AddGroup(AdminAddGroupFormModel formModel)
         {
             try
             {
@@ -121,9 +136,8 @@ namespace ASP_P42.Controllers
                  * - опис (довжина)
                  * - Slug (унікальність, url-коректність)
                  */
-                _dataContext.ProductGroups.Add(new()
+                Guid newGroupId = await _dataAccessor.AddNewProductGroup(new()
                 {
-                    Id = Guid.NewGuid(),
                     ParentId = formModel.ParentId,
                     Name = formModel.Name,
                     Description = formModel.Description,
@@ -131,8 +145,7 @@ namespace ASP_P42.Controllers
                     IsHidden = formModel.IsHidden,
                     ImageUrl = "/storage/image/" + _storageService.Save(formModel.Image)
                 });
-                _dataContext.SaveChanges();
-                return Ok();
+                return Ok(newGroupId);
             }
             catch (Exception ex)
             {
