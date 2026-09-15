@@ -5,10 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ASP_P42.Controllers
 {
-    public class AdminController(IStorageService storageService, DataContext dataContext) : Controller
+    public class AdminController(IStorageService storageService, DataAccessor dataAccessor, DataContext dataContext) : Controller
     {
         private readonly IStorageService _storageService = storageService;
         private readonly DataContext _dataContext = dataContext;
+        private readonly DataAccessor _dataAccessor = dataAccessor;
          
 
         public IActionResult Index()
@@ -20,7 +21,7 @@ namespace ASP_P42.Controllers
         {
             AdminGroupViewModel viewModel = new()
             {
-                Groups = _dataContext.ProductGroups.OrderBy(g => g.OrderInPrice).ToList(),
+                Groups = _dataAccessor.GetAllProductGroups(isIncludeHidden:true),
             };
             return View(viewModel);
         }
@@ -103,7 +104,8 @@ namespace ASP_P42.Controllers
         {
             AdminGroupViewModel viewModel = new()
             {
-                Groups = _dataContext.ProductGroups.OrderBy(g => g.OrderInPrice).ToList(),
+                // Groups = _dataContext.ProductGroups.OrderBy(g => g.OrderInPrice).ToList(),
+                Groups = _dataAccessor.GetAllProductGroups(isIncludeHidden: true),
             };
             return View(viewModel);
         }
