@@ -41,4 +41,7 @@ namespace ASP_P42.Data
 /* DAL - Data Access Layer
  * Шар доступу до даних - поєднання декількох DAO (Data Access Object)
  * або узагальнений інтерфейс одержання даних
+ * 
+ * Д.З. Реалізувати CRUD (Create[вже є], Read, Update, Delete) для сутності ProductGroup
+ * 
  */
