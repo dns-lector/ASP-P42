@@ -276,3 +276,6 @@ namespace ASP_P42.Controllers
  *     та заголовками Authorization, Content-Type
  * Підключити одну політику за іменем
  */
+/* Д.З. Accessor : перенести логіку реєстрації та автентифікації 
+ * користувача з UserController у DataAccessor
+ */

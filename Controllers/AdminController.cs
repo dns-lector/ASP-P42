@@ -39,7 +39,7 @@ namespace ASP_P42.Controllers
                     imageUrl = _storageService.Save(formModel.Image);
                 }                
 
-                _dataAccessor.AddNewProduct(formModel, imageUrl);
+                await _dataAccessor.AddNewProduct(formModel, imageUrl);
 
                 return Ok();
             }

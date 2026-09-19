@@ -1,4 +1,5 @@
 ﻿using ASP_P42.Data.Entities;
+using ASP_P42.Models.Admin;
 
 namespace ASP_P42.Data
 {
@@ -95,7 +96,7 @@ namespace ASP_P42.Data
             if(formModel.Slug != null)
             {
                 // перевірка на унікальність slug
-                if( _dataContext.Products.Any(p => p.Slug == formModel.Slug)
+                if( _dataContext.Products.Any(p => p.Slug == formModel.Slug))
                 {
                     throw new Exception($"Slug '{formModel.Slug}' is already in use by other product");
                 }
