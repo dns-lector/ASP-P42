@@ -6,10 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ASP_P42.Controllers
 {
-    public class AdminController(IStorageService storageService, DataAccessor dataAccessor, DataContext dataContext) : Controller
+    public class AdminController(IStorageService storageService, DataAccessor dataAccessor) : Controller
     {
         private readonly IStorageService _storageService = storageService;
-        private readonly DataContext _dataContext = dataContext;
         private readonly DataAccessor _dataAccessor = dataAccessor;
          
 
@@ -28,85 +27,20 @@ namespace ASP_P42.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddProduct(AdminAddProductFormModel formModel)
+        public async Task<IActionResult> AddProduct(AdminAddProductFormModel formModel)
         {
             try
             {
-                /* Д.З. Реалізувати валідацію моделі форми 
-                 * додавання нового товару
-                 * - назва (довжина, відсутність спецсимволів)
-                 * - опис - якщо передається, то перевіряється (довжина), інакше ігнорується
-                 * - Slug (унікальність, url-коректність) - якщо передається
-                 * - кількість - ціле позитивне число або "-1"
-                 * - ціна - позитивне число більше за 0.01
-                 */
-                // 
-                // оскільки товари МАЮТЬ належати певній групі, перевіряємо її правильність
-                Data.Entities.ProductGroup group = _dataContext
-                    .ProductGroups
-                    .FirstOrDefault(g => g.Id == formModel.GroupId)
-                ?? throw new Exception($"Group not found with id='{formModel.GroupId}'");
-                
-                // додавання нового товару
-                // оскільки зображення (картинка) опціональна, перевіряємо без винятків
+                await _dataAccessor.IsProductFormModelValidAsync(formModel);
+
                 String? imageUrl = null;
                 if (formModel.Image != null)
                 {
-                    // але якщо дані передано, то перевіряємо повністю
                     imageUrl = _storageService.Save(formModel.Image);
-                }
-                
-                if (formModel.ProductId != null)
-                {
-                    // додавання нової версії, слід пересвідчитись у наявності товару
-                    Data.Entities.Product product = _dataContext
-                        .Products
-                        .FirstOrDefault(p => p.Id == formModel.ProductId) 
-                    ?? throw new Exception($"Product not found with id='{formModel.ProductId}'");
+                }                
 
-                    _dataContext.ProductVersions.Add(new()
-                    {
-                        Id = _dataAccessor.GetDbIdentity(),
-                        ProductId = product.Id,
-                        ImageUrl = imageUrl,
-                        Price = (decimal)formModel.Price,
-                        Stock = formModel.Stock,
-                        OrderInPrice = formModel.Order,
-                        Slug = formModel.Slug,
-                        IsHidden = formModel.IsHidden,
-                        Version = formModel.Name
-                    });
-                }
-                else
-                {                    
-                    // Розбираємо дані на Товар і Версію
-                    Guid productId = Guid.NewGuid();
-                    _dataContext.Products.Add(new()
-                    {
-                        Id = productId,
-                        GroupId = group.Id,
-                        Name = formModel.Name,
-                        Description = formModel.Description,
-                        ImageUrl = imageUrl,
-                        IsHidden = formModel.IsHidden,
-                        OrderInPrice = formModel.Order,
-                        Slug = formModel.Slug,
-                    });
-                    _dataContext.ProductVersions.Add(new()
-                    {
-                        Id = Guid.NewGuid(),
-                        ProductId = productId,
-                        ImageUrl = imageUrl,
-                        Price = (decimal)formModel.Price,
-                        Stock = formModel.Stock,
-                        OrderInPrice = 1,
-                        Slug = formModel.Slug,
-                        IsHidden = formModel.IsHidden,                        
-                    });
-                }
-                
-                _dataContext.SaveChanges();
-                
+                _dataAccessor.AddNewProduct(formModel, imageUrl);
+
                 return Ok();
             }
             catch (Exception ex)
