@@ -1,4 +1,5 @@
 ﻿using ASP_P42.Data;
+using ASP_P42.Models.Rest;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +12,35 @@ namespace ASP_P42.Controllers.Api
         private readonly DataContext _dataContext = dataContext;
 
         [HttpGet]   // це запускатиметься запитом GET /api/group
-        public IEnumerable<Data.Entities.ProductGroup> GetAllGroups()
+        public RestResponse GetAllGroups(int page = 1, int pageSize = 10)
         {
+            var query = _dataContext.ProductGroups.Where(g => g.IsHidden == 0);
+            int cnt = query.Count();
+
+            RestMetaPagination pagination = new()
+            {
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = cnt,
+                TotalPages = 
+            }
             // повертаємо дані довільного типу, вони автоматично перетворяться на JSON
-            return _dataContext.ProductGroups.Where(g => g.IsHidden == 0);   
+            return new()
+            {
+                Meta = new()
+                {
+                    ApiName = "Product Groups",
+                    DataType = "json/array",
+                    CacheTime = 86_400_000,
+                    Manipulations = ["GET"],
+                    Links = { 
+                        { "self", "/api/group" },
+                        { "sub", "/api/group/{slug}" },
+                    },
+                    
+                },
+                Data = 
+            };   
         }
 
         [HttpPost]   // це запускатиметься запитом POST /api/group
