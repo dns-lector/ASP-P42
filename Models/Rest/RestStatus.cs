@@ -10,3 +10,8 @@
         public static readonly RestStatus BadRequest = new() { IsOk = false, Code = 400, Message = "Bad Request" };
     }
 }
+/* Д.З. Заповнити class RestStatus стандартними статусами відповідей,
+ * а також додати типові статуси з вільними кодами, наприклад,
+ * 440 Header Required (відсутній необхідний заголовок)
+ * 441 Header Malformed (неправильний формат заголовку)
+ */

@@ -79,8 +79,11 @@ document.addEventListener('submit', e => {
             method: "POST",
             body: formData
         }).then(r => {
-            //if (r.ok)
-            {
+            if (r.ok) {
+                alert("OK");
+                window.location.reload();
+            }
+            else {
                 r.text().then(alert);
             }
         });

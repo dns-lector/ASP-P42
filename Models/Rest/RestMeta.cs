@@ -3,12 +3,19 @@
     public class RestMeta
     {
         public string ApiName { get; set; } = null!;
-        public long ServerTime { get; set; } = DateTime.UtcNow.Ticks - DateTime.UnixEpoch.Ticks;
+
+        public long ServerTime { get; set; } = (DateTime.UtcNow.Ticks - DateTime.UnixEpoch.Ticks) / 10000;
+        
         public String DataType { get; set; } = "application/json";
+        
         public String[] Manipulations { get; set; } = [];
+        
         public int? CacheTime { get; set; }
+        
         public Dictionary<String, String> Links { get; set; } = [];
+        
         public RestMetaPagination? Pagination { get; set; }
+        
         public Dictionary<String, Object> Parameters { get; set; } = [];
     }
 }

@@ -2,6 +2,7 @@
 using ASP_P42.Models.Rest;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ASP_P42.Controllers.Api
 {
@@ -14,7 +15,12 @@ namespace ASP_P42.Controllers.Api
         [HttpGet]   // це запускатиметься запитом GET /api/group
         public RestResponse GetAllGroups(int page = 1, int pageSize = 10)
         {
-            var query = _dataContext.ProductGroups.Where(g => g.IsHidden == 0);
+            var query = _dataContext
+                .ProductGroups
+                .Include(g => g.Children)
+                .Where(g => g.IsHidden == 0 && g.ParentId == null)
+                .OrderBy(g => g.OrderInPrice);
+
             int cnt = query.Count();
 
             RestMetaPagination pagination = new()
@@ -22,8 +28,8 @@ namespace ASP_P42.Controllers.Api
                 Page = page,
                 PageSize = pageSize,
                 TotalItems = cnt,
-                TotalPages = 
-            }
+                TotalPages = (int)Math.Ceiling((float)cnt / pageSize),
+            };
             // повертаємо дані довільного типу, вони автоматично перетворяться на JSON
             return new()
             {
@@ -37,9 +43,9 @@ namespace ASP_P42.Controllers.Api
                         { "self", "/api/group" },
                         { "sub", "/api/group/{slug}" },
                     },
-                    
+                    Pagination = pagination,
                 },
-                Data = 
+                Data = query.Skip(pageSize * (page - 1)).Take(pageSize).ToArray(),
             };   
         }
 
