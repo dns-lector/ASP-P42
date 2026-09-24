@@ -1,4 +1,5 @@
 ﻿using ASP_P42.Data;
+using ASP_P42.Data.Entities;
 using ASP_P42.Models.Rest;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -30,6 +31,14 @@ namespace ASP_P42.Controllers.Api
                 TotalItems = cnt,
                 TotalPages = (int)Math.Ceiling((float)cnt / pageSize),
             };
+            ProductGroup[] groups = query.Skip(pageSize * (page - 1)).Take(pageSize).ToArray();
+            foreach(var group in groups)
+            {
+                if (group.ImageUrl.StartsWith('/'))
+                {
+                    group.ImageUrl = $"{Request.Scheme}://{Request.Host}{group.ImageUrl}";
+                }
+            };
             // повертаємо дані довільного типу, вони автоматично перетворяться на JSON
             return new()
             {
@@ -45,7 +54,7 @@ namespace ASP_P42.Controllers.Api
                     },
                     Pagination = pagination,
                 },
-                Data = query.Skip(pageSize * (page - 1)).Take(pageSize).ToArray(),
+                Data = groups,
             };   
         }
 
