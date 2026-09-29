@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ASP_P42.Data.Entities
 {
@@ -23,7 +24,7 @@ namespace ASP_P42.Data.Entities
 
         public int OrderInPrice { get; set; } = 100000;
 
-
+        [JsonIgnore]
         public Product Product { get; set; } = null!;
     }
 }

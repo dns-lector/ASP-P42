@@ -4,6 +4,7 @@ using ASP_P42.Models.Rest;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace ASP_P42.Controllers.Api
 {
@@ -38,6 +39,13 @@ namespace ASP_P42.Controllers.Api
                 {
                     group.ImageUrl = $"{Request.Scheme}://{Request.Host}{group.ImageUrl}";
                 }
+                if (group.Children.Count > 0)
+                {
+                    foreach (var c in group.Children)
+                    {
+                        c.ImageUrl = $"{Request.Scheme}://{Request.Host}{c.ImageUrl}";
+                    }
+                }
             };
             // повертаємо дані довільного типу, вони автоматично перетворяться на JSON
             return new()
@@ -56,6 +64,51 @@ namespace ASP_P42.Controllers.Api
                 },
                 Data = groups,
             };   
+        }
+
+        [HttpGet("{id}")]
+        public RestResponse GetOneGroup(String id, int page = 1, int pageSize = 10)
+        {
+            ProductGroup? group = _dataContext
+                .ProductGroups
+                .Include(g => g.Products.OrderBy(p => p.OrderInPrice))
+                    .ThenInclude(p => p.Versions)
+                .Where(g => g.IsHidden == 0 && g.Slug == id)
+                .FirstOrDefault();
+
+            if (group == null)
+            {
+                return new()
+                {
+                    Status = RestStatus.NotFound,
+                };
+            }
+
+            int cnt = group.Products.Count;
+
+            RestMetaPagination pagination = new()
+            {
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = cnt,
+                TotalPages = (int)Math.Ceiling((float)cnt / pageSize),
+            };
+            return new()
+            {
+                Meta = new()
+                {
+                    ApiName = "Group Products",
+                    DataType = "json/array",
+                    CacheTime = 86_400_000,
+                    Manipulations = ["GET"],
+                    Links = {
+                        { "parent", "/api/group" },
+                        { "self", "/api/group/{slug}" },
+                    },
+                    Pagination = pagination,
+                },
+                Data = group,
+            };
         }
 
         [HttpPost]   // це запускатиметься запитом POST /api/group
@@ -91,4 +144,7 @@ Applications (застосунки) - відокремлені програми,
    запускають одну і ту саму активність
 - АРІ має постійну адресу, а відмінність в активності задається методами запиту
    GET /path та POST /path  запускають різні дії
+
+Д.З. Впровадити REST принципи у власні курсові проєкти.
+Прикласти посилання на репозиторії.
  */
