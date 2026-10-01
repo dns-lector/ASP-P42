@@ -14,6 +14,20 @@ namespace ASP_P42.Controllers.Api
     {
         private readonly DataContext _dataContext = dataContext;
 
+        private String? FullImageUrl(String? url)
+        {
+            if (url == null) return null;
+            if (url.StartsWith('/'))
+            {
+                return $"{Request.Scheme}://{Request.Host}{url}";
+            }
+            if (!url.StartsWith("http"))
+            {
+                return $"{Request.Scheme}://{Request.Host}/Storage/Item/{url}";
+            }
+            return url;
+        }
+
         [HttpGet]   // це запускатиметься запитом GET /api/group
         public RestResponse GetAllGroups(int page = 1, int pageSize = 10)
         {
@@ -35,15 +49,12 @@ namespace ASP_P42.Controllers.Api
             ProductGroup[] groups = query.Skip(pageSize * (page - 1)).Take(pageSize).ToArray();
             foreach(var group in groups)
             {
-                if (group.ImageUrl.StartsWith('/'))
-                {
-                    group.ImageUrl = $"{Request.Scheme}://{Request.Host}{group.ImageUrl}";
-                }
+                group.ImageUrl = FullImageUrl(group.ImageUrl)!;
                 if (group.Children.Count > 0)
                 {
                     foreach (var c in group.Children)
                     {
-                        c.ImageUrl = $"{Request.Scheme}://{Request.Host}{c.ImageUrl}";
+                        c.ImageUrl = FullImageUrl(c.ImageUrl)!;
                     }
                 }
             };
@@ -65,6 +76,9 @@ namespace ASP_P42.Controllers.Api
                 Data = groups,
             };   
         }
+        /* Д.З. Змінити реалізацію GetAllGroups з використанням операцій клонування (with {}) 
+         * та колекційних ініціалізаторів для об'єктів з повними URL зображень.
+         */
 
         [HttpGet("{id}")]
         public RestResponse GetOneGroup(String id, int page = 1, int pageSize = 10)
@@ -93,6 +107,24 @@ namespace ASP_P42.Controllers.Api
                 TotalItems = cnt,
                 TotalPages = (int)Math.Ceiling((float)cnt / pageSize),
             };
+
+            // group.Products = group.Products.Skip(pageSize * (page - 1)).Take(pageSize).ToList();
+            var grp = group with
+            {
+                ImageUrl = FullImageUrl(group.ImageUrl)!,
+                Products = [.. 
+                    group
+                    .Products
+                    .Skip(pageSize * (page - 1))
+                    .Take(pageSize)
+                    .Select(p => p with { 
+                        ImageUrl = FullImageUrl(p.ImageUrl),
+                        Versions = [.. p.Versions.Select(v => v with { ImageUrl = FullImageUrl(v.ImageUrl) })]
+                    })
+                ]
+            };
+
+
             return new()
             {
                 Meta = new()
@@ -107,7 +139,7 @@ namespace ASP_P42.Controllers.Api
                     },
                     Pagination = pagination,
                 },
-                Data = group,
+                Data = grp,
             };
         }
 

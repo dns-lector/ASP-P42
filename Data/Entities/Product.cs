@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace ASP_P42.Data.Entities
 {
-    public class Product
+    public record Product
     {
         public Guid Id { get; set; }
 
