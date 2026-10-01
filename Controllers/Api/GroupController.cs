@@ -98,7 +98,7 @@ namespace ASP_P42.Controllers.Api
                 Meta = new()
                 {
                     ApiName = "Group Products",
-                    DataType = "json/array",
+                    DataType = "json/object",
                     CacheTime = 86_400_000,
                     Manipulations = ["GET"],
                     Links = {

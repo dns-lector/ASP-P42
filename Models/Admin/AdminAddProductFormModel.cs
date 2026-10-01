@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace ASP_P42.Models.Admin
 {
     public class AdminAddProductFormModel
     {
         [FromForm(Name = "product-group")]
+        [Required]
         public Guid GroupId { get; set; }
 
         [FromForm(Name = "product-id")]
